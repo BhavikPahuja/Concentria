@@ -4,7 +4,11 @@ import {
   deleteCookie,
   deleteAllCookies
 } from '../utils/cookieUtils.js';
+import { config } from "../config.js";
 
+const API_URL = config.API_URL;
+
+// --- Tabs ---
 document.getElementById('logsTab').onclick = () => switchTab('logs');
 document.getElementById('cookiesTab').onclick = () => switchTab('cookies');
 
@@ -16,31 +20,62 @@ function switchTab(tab) {
   if (tab === 'cookies') loadCookies();
 }
 
+// --- Logs ---
+async function fetchLogsFromBackend() {
+  try {
+    const response = await fetch(API_URL);
+    if (!response.ok) throw new Error("Failed to fetch logs");
+    console.log(response);
+    
+    return await response.json();
+  } catch (e) {
+    console.error("[popup] Fetch logs error:", e);
+    showError("Could not fetch logs from backend.");
+    return [];
+  }
+}
+
 // Render logs: newest first
-function renderLogs() {
-  chrome.storage.local.get('logs', (data) => {
-    const logs = data.logs || [];
-    const tbody = document.getElementById('logsContent');
-    tbody.innerHTML = '';
-    logs.slice().reverse().forEach(log => {
-      const row = document.createElement('tr');
-      // Truncate URL to 25 characters for display, show full URL in tooltip
-      const displayUrl = log.url.length > 25 ? log.url.slice(0, 25) + '...' : log.url;
-      row.innerHTML = `
-        <td>${new Date(log.timestamp).toLocaleString()}</td>
-        <td>${log.type}</td>
-        <td class="url-scroll" title="${log.url}">${displayUrl}</td>`;
-      tbody.appendChild(row);
-    });
+async function renderLogs() {
+  const logs = await fetchLogsFromBackend();
+  if (!Array.isArray(logs)) {
+    console.error("Expected logs to be an array, but got:", logs);
+    return;
+  }
+  const tbody = document.getElementById('logsContent');
+  tbody.innerHTML = '';
+  logs.slice().reverse().forEach(log => {
+    const displayUrl = log.url && log.url.length > 25 ? log.url.slice(0, 25) + '...' : (log.url || '');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${new Date(log.timestamp).toLocaleString()}</td>
+      <td>${log.type}</td>
+      <td class="url-scroll" title="${log.url || ''}">${displayUrl}</td>`;
+    tbody.appendChild(row);
   });
 }
 renderLogs();
 
+// Download logs from backend
 document.getElementById('downloadLogs').onclick = async () => {
-  const { logs = [] } = await chrome.storage.local.get('logs');
+  const logs = await fetchLogsFromBackend();
   downloadJSON(logs, 'logs.json');
 };
 
+// Clear all logs in backend
+document.getElementById('clearAllLogs').onclick = async () => {
+  try {
+    const response = await fetch(API_URL, { method: "DELETE" });
+    if (!response.ok) throw new Error("Failed to clear logs");
+    await renderLogs();
+    alert('All logs cleared!');
+  } catch (e) {
+    showError("Could not clear logs on backend.");
+    console.error("[popup] Clear logs error:", e);
+  }
+};
+
+// --- Cookies ---
 document.getElementById('downloadCookies').onclick = async () => {
   const cookies = await getDomainCookies();
   downloadJSON(cookies, 'cookies.json');
@@ -52,16 +87,8 @@ document.getElementById('deleteAllCookies').onclick = async () => {
   loadCookies();
 };
 
-// NEW: Clear all logs button
-document.getElementById('clearAllLogs').onclick = async () => {
-  await chrome.storage.local.set({ logs: [] });
-  renderLogs();
-  alert('All logs cleared!');
-};
-
-// NEW: Open dashboard button
+// Dashboard button
 document.getElementById('openDashboard').onclick = () => {
-  // Replace with your actual dashboard URL
   chrome.tabs.create({ url: 'https://your-frontend-dashboard.com/' });
 };
 
@@ -109,4 +136,9 @@ function downloadJSON(data, filename) {
   a.href = url; a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+// Optional: show error in UI
+function showError(msg) {
+  alert(msg); // Replace with better UI if desired
 }
