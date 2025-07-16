@@ -3,6 +3,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes";
+import logRoutes from "./routes/logRoutes";
 import { allowedOrigins } from "./config";
 import errorHandler from "./middlewares/errorHandler";
 import requestLogger from "./middlewares/requestLogger";
@@ -36,6 +37,7 @@ app.use(responseLogger); // Log outgoing responses
 connectDatabase();
 
 app.use("/auth", authRoutes);
+app.use("/api", logRoutes);
 
 app.use(errorHandler); // Error handling middleware
 
