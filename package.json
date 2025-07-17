@@ -14,7 +14,15 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.9",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/ioredis": "^4.28.10",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/mongoose": "^5.11.96",
+    "@types/node": "^24.0.3",
+    "@types/nodemailer": "^6.4.17",
     "@types/uuid": "^10.0.0",
     "@types/winston": "^2.4.4",
     "bcrypt": "^6.0.0",
@@ -26,23 +34,15 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.3",
     "nodemailer": "^7.0.3",
+    "typescript": "^5.8.3",
     "uuid": "^11.1.0",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
     "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@types/bcrypt": "^5.0.2",
-    "@types/cookie-parser": "^1.4.9",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3",
-    "@types/ioredis": "^4.28.10",
-    "@types/mongoose": "^5.11.96",
-    "@types/node": "^24.0.3",
-    "@types/nodemailer": "^6.4.17",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.3"
+    "ts-node-dev": "^2.0.0"
   }
 }
