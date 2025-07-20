@@ -15,6 +15,7 @@ function DashboardPage() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [demoMode, setDemoMode] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -25,11 +26,64 @@ function DashboardPage() {
       setLoading(true);
       setError("");
 
+      if (demoMode) {
+        // Demo data for testing
+        const demoLogs = [
+          {
+            id: 1,
+            timestamp: new Date().toISOString(),
+            action: "User Login",
+            details: "Successful login from dashboard",
+            type: "auth",
+          },
+          {
+            id: 2,
+            timestamp: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+            action: "Data Privacy Check",
+            details: "Privacy settings reviewed",
+            type: "privacy",
+          },
+          {
+            id: 3,
+            timestamp: new Date().toISOString(),
+            action: "Security Scan",
+            details: "System security validation",
+            type: "security",
+          },
+        ];
+
+        setTimeout(() => {
+          setLogs(demoLogs);
+          setLoading(false);
+        }, 1000);
+        return;
+      }
+
+      console.log("🔍 Starting dashboard data fetch...");
+      console.log("🔍 Current user:", user);
+      const storedToken = localStorage.getItem("accessToken");
+      console.log("🔍 Stored token:", storedToken ? "Present" : "Missing");
+      if (storedToken) {
+        console.log("🔍 Token length:", storedToken.length);
+        console.log("🔍 Token preview:", storedToken.substring(0, 50) + "...");
+      }
+
       const allLogs = await logsApiService.getAllLogs();
+      console.log("🔍 Dashboard: Received logs:", allLogs);
+      console.log("🔍 Dashboard: Logs is array:", Array.isArray(allLogs));
+      console.log("🔍 Dashboard: Logs length:", allLogs?.length || 0);
+
       setLogs(Array.isArray(allLogs) ? allLogs : []);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
-      setError("Failed to load dashboard data. Please try again.");
+
+      if (error.status === 401) {
+        setError(
+          "Backend authentication issue detected. This is likely due to the database changes."
+        );
+      } else {
+        setError("Failed to load dashboard data. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -58,6 +112,145 @@ function DashboardPage() {
       await logout();
     } catch (error) {
       console.error("Logout error:", error);
+    }
+  };
+
+  // Temporary debug function to clear auth data
+  const handleClearAuth = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    console.log("🧹 All auth data cleared");
+    setError("Authentication cleared. You will be redirected to login.");
+
+    // Small delay to show the message, then redirect
+    setTimeout(() => {
+      window.location.href = "/auth";
+    }, 1500);
+  };
+
+  // Test backend connectivity
+  const testBackendConnection = async () => {
+    try {
+      console.log("🔍 Testing backend connectivity...");
+      const response = await fetch(
+        "https://concentria-fh4s.onrender.com/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: "test@test.com",
+            password: "wrongpassword",
+          }),
+        }
+      );
+
+      const data = await response.json();
+      console.log("🔍 Backend response:", response.status, data);
+
+      if (response.status === 400 || response.status === 401) {
+        setError(
+          `Backend is responding (${response.status}). The authentication issue is specific to your user account or token.`
+        );
+      } else {
+        setError(
+          `Backend connectivity test: ${response.status} - ${
+            data.message || "Unknown response"
+          }`
+        );
+      }
+    } catch (err) {
+      console.error("🔍 Backend test failed:", err);
+      setError("Backend server appears to be down or unreachable.");
+    }
+  };
+
+  // Debug function to check current auth state
+  const debugAuthState = () => {
+    const token = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
+    const storedUser = localStorage.getItem("user");
+
+    console.log("🔍 DEBUG AUTH STATE:");
+    console.log(
+      "🔍 Access Token:",
+      token ? `Present (${token.length} chars)` : "Missing"
+    );
+    console.log(
+      "🔍 Refresh Token:",
+      refreshToken ? `Present (${refreshToken.length} chars)` : "Missing"
+    );
+    console.log(
+      "🔍 Stored User:",
+      storedUser ? JSON.parse(storedUser) : "Missing"
+    );
+    console.log("🔍 Auth Context User:", user);
+
+    // Try to decode JWT token to show it's valid structure
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        console.log("🔍 Token Payload:", payload);
+        console.log("🔍 Token Expires:", new Date(payload.exp * 1000));
+        console.log(
+          "🔍 Token Valid Until:",
+          payload.exp > Date.now() / 1000 ? "Not Expired" : "EXPIRED"
+        );
+      } catch (e) {
+        console.log("🔍 Token Decode Error:", e.message);
+      }
+    }
+
+    setError(
+      `Auth Debug: Token=${token ? "Present" : "Missing"}, User=${
+        user ? "Present" : "Missing"
+      }. Backend auth middleware appears broken - rejecting ALL tokens.`
+    );
+  };
+
+  // Test the actual logs API call with manual headers
+  const testLogsApiCall = async () => {
+    const token = localStorage.getItem("accessToken");
+    console.log("🧪 MANUAL LOGS API TEST:");
+    console.log(
+      "🧪 Token:",
+      token ? `${token.substring(0, 20)}...` : "Missing"
+    );
+
+    try {
+      const response = await fetch(
+        "https://concentria-fh4s.onrender.com/api/logs",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+      console.log("🧪 Manual API Response:", response.status, data);
+      console.log("🧪 Response Headers:", [...response.headers.entries()]);
+
+      if (response.ok) {
+        setError(
+          `Manual API Test: SUCCESS! Got ${
+            Array.isArray(data) ? data.length : 0
+          } logs`
+        );
+      } else {
+        setError(
+          `BACKEND AUTH BROKEN: Even fresh tokens get 401. Status: ${
+            response.status
+          } - ${data.message || "Unknown error"}`
+        );
+      }
+    } catch (err) {
+      console.error("🧪 Manual API Test Error:", err);
+      setError(`Manual API Test: ERROR - ${err.message}`);
     }
   };
 
@@ -106,9 +299,65 @@ function DashboardPage() {
           {/* Error Message */}
           {error && (
             <div className="mx-6 mb-6 bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-xl p-4">
-              <div className="flex items-center">
-                <FiAlertTriangle className="h-5 w-5 text-red-500 mr-2" />
-                <p className="text-red-700 font-medium">{error}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FiAlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+                  <div>
+                    <p className="text-red-700 font-medium">{error}</p>
+                    {error.includes("Authentication") && (
+                      <p className="text-red-600 text-sm mt-1">
+                        This might be due to recent database changes. Try
+                        logging out and back in.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {error.includes("Backend authentication") && (
+                    <>
+                      <button
+                        onClick={() => {
+                          setDemoMode(true);
+                          setError("");
+                          fetchDashboardData();
+                        }}
+                        className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
+                      >
+                        Enable Demo Mode
+                      </button>
+                      <button
+                        onClick={debugAuthState}
+                        className="px-3 py-1 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm"
+                      >
+                        Debug Auth
+                      </button>
+                      <button
+                        onClick={testLogsApiCall}
+                        className="px-3 py-1 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors text-sm"
+                      >
+                        Test API Call
+                      </button>
+                      <button
+                        onClick={testBackendConnection}
+                        className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm"
+                      >
+                        Test Backend
+                      </button>
+                      <button
+                        onClick={handleClearAuth}
+                        className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm"
+                      >
+                        Clear Auth
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setError("")}
+                    className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                  >
+                    Dismiss
+                  </button>
+                </div>
               </div>
             </div>
           )}

@@ -29,15 +29,55 @@ class LogsApiService {
    */
   async getAllLogs() {
     try {
+      console.log("🔍 LogsAPI: Starting getAllLogs request");
+      console.log(
+        "🔍 LogsAPI: Token exists:",
+        !!localStorage.getItem("accessToken")
+      );
+      console.log("🔍 LogsAPI: API URL:", config.API_URL || apiService.baseURL);
+      console.log("🔍 LogsAPI: Endpoint:", config.endpoints.logs.getAll);
+
       const response = await apiService.makeRequest(
         config.endpoints.logs.getAll,
         {
           method: "GET",
         }
       );
-      return response;
+
+      console.log("🔍 LogsAPI: Response received:", response);
+
+      // Handle new response structure with nested logs array
+      if (response && response.logs && Array.isArray(response.logs)) {
+        console.log(
+          "🔍 LogsAPI: Extracted logs array:",
+          response.logs.length,
+          "items"
+        );
+        console.log("🔍 LogsAPI: Pagination info:", response.pagination);
+        return response.logs;
+      }
+
+      // Fallback for direct array response (backward compatibility)
+      if (Array.isArray(response)) {
+        console.log(
+          "🔍 LogsAPI: Direct array response:",
+          response.length,
+          "items"
+        );
+        return response;
+      }
+
+      console.warn("🔍 LogsAPI: Unexpected response structure:", response);
+      return [];
     } catch (error) {
       console.error("Error fetching logs:", error);
+      console.error("🔍 LogsAPI: Full error details:", {
+        status: error.status,
+        message: error.message,
+        url: `${config.API_URL || apiService.baseURL}${
+          config.endpoints.logs.getAll
+        }`,
+      });
       throw error;
     }
   }

@@ -1,7 +1,7 @@
 import { config } from "../config/api.js";
 
 /**
- * Enhanced API Service with proper error handling and response formatting
+ * Simplified API Service with basic error handling
  */
 class ApiService {
   constructor() {
@@ -22,6 +22,12 @@ class ApiService {
     const token = localStorage.getItem("accessToken");
     if (token) {
       defaultHeaders.Authorization = `Bearer ${token}`;
+      console.log(
+        "🔐 Added Authorization header with token length:",
+        token.length
+      );
+    } else {
+      console.warn("⚠️ No access token found for request");
     }
 
     const requestOptions = {
@@ -29,9 +35,10 @@ class ApiService {
       ...options,
     };
 
-    try {
-      console.log(`🚀 API Request: ${options.method || "GET"} ${url}`);
+    console.log(`🚀 API Request: ${options.method || "GET"} ${url}`);
+    console.log("📤 Request headers:", requestOptions.headers);
 
+    try {
       const response = await fetch(url, requestOptions);
       const data = await response.json();
 
@@ -108,6 +115,14 @@ class ApiService {
     if (response.accessToken) {
       localStorage.setItem("accessToken", response.accessToken);
 
+      // Also store refresh token if provided
+      if (response.refreshToken) {
+        localStorage.setItem("refreshToken", response.refreshToken);
+        console.log("🔐 Refresh token stored successfully");
+      } else {
+        console.log("⚠️ No refresh token received from backend");
+      }
+
       // Store user data if provided, otherwise create minimal user object
       if (response.user) {
         localStorage.setItem("user", JSON.stringify(response.user));
@@ -118,6 +133,13 @@ class ApiService {
         };
         localStorage.setItem("user", JSON.stringify(minimalUser));
       }
+
+      console.log("🔐 Login tokens stored:", {
+        hasAccessToken: !!response.accessToken,
+        hasRefreshToken: !!response.refreshToken,
+        accessTokenLength: response.accessToken?.length,
+        refreshTokenLength: response.refreshToken?.length,
+      });
     }
 
     return response;
@@ -145,14 +167,32 @@ class ApiService {
   }
 
   async refreshToken() {
-    return this.makeRequest(config.endpoints.auth.refreshToken, {
-      method: "POST",
-    });
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (!refreshToken) {
+      throw new Error("No refresh token available");
+    }
+
+    const response = await this.makeRequest(
+      config.endpoints.auth.refreshToken,
+      {
+        method: "POST",
+        body: JSON.stringify({ refreshToken }),
+      }
+    );
+
+    if (response.accessToken) {
+      localStorage.setItem("accessToken", response.accessToken);
+    }
+    if (response.refreshToken) {
+      localStorage.setItem("refreshToken", response.refreshToken);
+    }
+
+    return response;
   }
 
-  // Utility methods
   logout() {
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
   }
 
