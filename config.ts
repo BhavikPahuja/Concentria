@@ -11,6 +11,19 @@ const adminEmail = process.env.EMAIL;
 const emailPassword = process.env.EMAIL_PASSWORD;
 const jwtSecretKey = process.env.JWT_SECRET;
 const jwtRefreshKey = process.env.JWT_REFRESH_SECRET;
+
+// Production startup debugging
+if (env === "production") {
+  console.log("🔍 PRODUCTION CONFIG CHECK:");
+  console.log("🔍 NODE_ENV:", env);
+  console.log("🔍 JWT_SECRET exists:", !!jwtSecretKey);
+  console.log("🔍 JWT_SECRET length:", jwtSecretKey?.length || 0);
+  console.log(
+    "🔍 JWT_SECRET first 10 chars:",
+    jwtSecretKey?.substring(0, 10) || "MISSING"
+  );
+  console.log("🔍 JWT_REFRESH_SECRET exists:", !!jwtRefreshKey);
+}
 // const accessTokenValidity = process.env.ACCESS_TOKEN_EXPIRE_TIME;
 // const refreshTokenValidity = process.env.REFRESH_TOKEN_EXPIRE_TIME;
 const accessTokenValidity = "5m";

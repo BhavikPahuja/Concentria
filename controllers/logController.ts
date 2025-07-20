@@ -1,6 +1,7 @@
 import Log from "../models/logModel";
 import { Request, Response, NextFunction } from "express";
 import { CustomError } from "../utils/customError";
+import { User } from "../models/userModel";
 
 export const createLog = async (
   req: Request,
@@ -8,15 +9,21 @@ export const createLog = async (
   next: NextFunction
 ) => {
   try {
-    const { userEmail } = req.user || {}; // Get user email from JWT middleware
+    const { userId } = req.user || {}; // Get userId from JWT middleware
 
-    if (!userEmail) {
+    if (!userId) {
       throw new CustomError("User authentication required", 401);
+    }
+
+    // Get user email from userId
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new CustomError("User not found", 401);
     }
 
     const logData = {
       ...req.body,
-      userEmail, // Automatically attach user email
+      userEmail: user.email, // Use email from user lookup
     };
 
     await Log.create(logData);
@@ -32,10 +39,16 @@ export const getLogs = async (
   next: NextFunction
 ) => {
   try {
-    const { userEmail } = req.user || {}; // Get user email from JWT middleware
+    const { userId } = req.user || {}; // Get userId from JWT middleware
 
-    if (!userEmail) {
+    if (!userId) {
       throw new CustomError("User authentication required", 401);
+    }
+
+    // Get user email from userId
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new CustomError("User not found", 401);
     }
 
     // Get query parameters for pagination and filtering
@@ -43,8 +56,8 @@ export const getLogs = async (
     const limit = parseInt(req.query.limit as string) || 100;
     const type = req.query.type as string; // Optional log type filter
 
-    // Build filter query
-    const filter: any = { userEmail };
+    // Build filter query using the user's email
+    const filter: any = { userEmail: user.email };
     if (type) {
       filter.type = type;
     }
@@ -79,14 +92,20 @@ export const deleteLogs = async (
   next: NextFunction
 ) => {
   try {
-    const { userEmail } = req.user || {}; // Get user email from JWT middleware
+    const { userId } = req.user || {}; // Get userId from JWT middleware
 
-    if (!userEmail) {
+    if (!userId) {
       throw new CustomError("User authentication required", 401);
     }
 
+    // Get user email from userId
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new CustomError("User not found", 401);
+    }
+
     // Delete only the authenticated user's logs
-    const result = await Log.deleteMany({ userEmail });
+    const result = await Log.deleteMany({ userEmail: user.email });
     res.json({
       message: "Your logs deleted successfully",
       deletedCount: result.deletedCount,

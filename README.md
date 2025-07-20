@@ -416,7 +416,7 @@ This project is licensed under the ISC License.
 For support and questions:
 
 - Create an issue on GitHub
-- Email: bhavikpahujacodes@gmail.com
+- Email: bhavikpahuja0@gmail.com
 
 ---
 
