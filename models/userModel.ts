@@ -1,11 +1,10 @@
 // src/models/userModel.ts
-import mongoose, { Schema, Document } from 'mongoose';
-import { ObjectId } from 'mongodb';
+import mongoose, { Schema, Document } from "mongoose";
+import { ObjectId } from "mongodb";
 
 export interface IUser extends Document {
   _id: ObjectId;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   countryCode: string;
   phoneNumber?: string;
   email: string;
@@ -15,16 +14,21 @@ export interface IUser extends Document {
   refreshToken?: string;
 }
 
-const userSchema = new Schema<IUser>({
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  countryCode: { type: String, required: true },
-  phoneNumber: { type: String },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  tnc: { type: Boolean, required: true },
-  isAdmin: { type: Boolean },
-  refreshToken: { type: String },
-});
+const userSchema = new Schema<IUser>(
+  {
+    fullName: { type: String, required: true },
+    countryCode: { type: String, required: true },
+    phoneNumber: { type: String },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    tnc: { type: Boolean, required: true },
+    isAdmin: { type: Boolean },
+    refreshToken: { type: String },
+  },
+  {
+    strict: true, // Only allow fields defined in schema
+    timestamps: true, // Add createdAt and updatedAt
+  }
+);
 
-export const User = mongoose.model<IUser>('User', userSchema);
+export const User = mongoose.model<IUser>("User", userSchema);

@@ -168,8 +168,7 @@ export const verifyOTP = async (otp: string, uniqueKey: string) => {
       password,
       phoneNumber,
       countryCode,
-      lastName,
-      firstName,
+      fullName,
       otp: storedOtp,
     } = JSON.parse(redisData);
 
@@ -185,8 +184,7 @@ export const verifyOTP = async (otp: string, uniqueKey: string) => {
         password,
         phoneNumber,
         countryCode,
-        lastName,
-        firstName,
+        fullName,
         tnc: true,
       });
 

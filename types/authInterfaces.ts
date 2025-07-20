@@ -4,8 +4,7 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest extends LoginRequest {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   phoneNumber: string;
   countryCode: string;
   tnc: boolean;

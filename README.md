@@ -65,16 +65,16 @@ A robust Node.js/TypeScript backend server providing authentication, user manage
 
 ### Authentication Routes (`/auth`)
 
-| Method | Endpoint                    | Description               | Body                                                         |
-| ------ | --------------------------- | ------------------------- | ------------------------------------------------------------ |
-| `POST` | `/auth/register`            | Register new user         | `{ email, password, firstName, lastName, countryCode, tnc }` |
-| `POST` | `/auth/verify-otp`          | Verify registration OTP   | `{ otp, uniqueKey }`                                         |
-| `POST` | `/auth/login`               | User login                | `{ email, password }`                                        |
-| `GET`  | `/auth/refresh-token`       | Refresh access token      | Requires refresh token cookie                                |
-| `POST` | `/auth/resend-otp`          | Resend registration OTP   | `{ email }`                                                  |
-| `POST` | `/auth/forgot-password`     | Request password reset    | `{ email }`                                                  |
-| `POST` | `/auth/reset-password`      | Reset password with OTP   | `{ email, newPassword, otp }`                                |
-| `POST` | `/auth/resend-password-otp` | Resend password reset OTP | `{ email }`                                                  |
+| Method | Endpoint                    | Description               | Body                                                           |
+| ------ | --------------------------- | ------------------------- | -------------------------------------------------------------- |
+| `POST` | `/auth/register`            | Register new user         | `{ email, password, fullName, countryCode, phoneNumber, tnc }` |
+| `POST` | `/auth/verify-otp`          | Verify registration OTP   | `{ otp, uniqueKey }`                                           |
+| `POST` | `/auth/login`               | User login                | `{ email, password }`                                          |
+| `GET`  | `/auth/refresh-token`       | Refresh access token      | Requires refresh token cookie                                  |
+| `POST` | `/auth/resend-otp`          | Resend registration OTP   | `{ email }`                                                    |
+| `POST` | `/auth/forgot-password`     | Request password reset    | `{ email }`                                                    |
+| `POST` | `/auth/reset-password`      | Reset password with OTP   | `{ email, newPassword, otp }`                                  |
+| `POST` | `/auth/resend-password-otp` | Resend password reset OTP | `{ email }`                                                    |
 
 ### Logging Routes (`/api`)
 
@@ -241,9 +241,9 @@ POST /auth/register
 {
   "email": "user@example.com",
   "password": "securePassword123",
-  "firstName": "John",
-  "lastName": "Doe",
+  "fullName": "John Doe",
   "countryCode": "+1",
+  "phoneNumber": "1234567890",
   "tnc": true
 }
 // Response: { message: "OTP sent for verification", uniqueKey: "register:uuid" }

@@ -1,0 +1,274 @@
+I need you to help me create/update my React frontend to work with my Node.js/TypeScript backend API. Here are the complete backend specifications:
+
+## Backend API Base URL
+- Production: https://concentria-fh4s.onrender.com
+- Development: http://localhost:5000
+
+## Authentication Endpoints
+
+### 1. Register User
+**Endpoint:** POST /auth/register
+**Request Body:**
+```typescript
+{
+  fullName: string; // min 3, max 100 chars
+  countryCode: string; // e.g., "+1", "+91"
+  email: string; // valid email format
+  password: string; // min 4 chars
+  phoneNumber: string;
+  tnc: boolean; // must be true
+}
+```
+**Success Response (201):**
+```json
+{
+  "message": "OTP sent for verification",
+  "uniqueKey": "register:uuid-string"
+}
+```
+
+### 2. Verify OTP
+**Endpoint:** POST /auth/verify-otp
+**Request Body:**
+```typescript
+{
+  otp: string; // 6-digit code
+  uniqueKey: string; // from registration response
+}
+```
+**Success Response (200):**
+```json
+{
+  "message": "OTP verified successfully"
+}
+```
+
+### 3. Login
+**Endpoint:** POST /auth/login
+**Request Body:**
+```typescript
+{
+  email: string;
+  password: string;
+}
+```
+**Success Response (200):**
+```json
+{
+  "accessToken": "jwt-token-here"
+}
+```
+**Note:** Sets httpOnly refresh token cookie automatically
+
+### 4. Resend Registration OTP
+**Endpoint:** POST /auth/resend-otp
+**Request Body:**
+```typescript
+{
+  uniqueKey: string; // from original registration
+}
+```
+**Success Response (200):**
+```json
+{
+  "message": "New OTP sent to your email."
+}
+```
+
+### 5. Forgot Password
+**Endpoint:** POST /auth/forgot-password
+**Request Body:**
+```typescript
+{
+  email: string;
+}
+```
+**Success Response (200):**
+```json
+{
+  "message": "OTP sent to your email"
+}
+```
+
+### 6. Reset Password
+**Endpoint:** POST /auth/reset-password
+**Request Body:**
+```typescript
+{
+  email: string;
+  newPassword: string; // min 4 chars
+  otp: string; // 6-digit code from email
+}
+```
+**Success Response (200):**
+```json
+{
+  "message": "Password reset successfully"
+}
+```
+
+### 7. Resend Password OTP
+**Endpoint:** POST /auth/resend-password-otp
+**Request Body:**
+```typescript
+{
+  email: string;
+}
+```
+**Success Response (200):**
+```json
+{
+  "message": "New OTP sent to your email."
+}
+```
+
+### 8. Refresh Token
+**Endpoint:** GET /auth/refresh-token
+**Success Response (200):**
+```json
+{
+  "accessToken": "new-jwt-token"
+}
+```
+**Note:** Uses httpOnly cookie, no body needed
+
+## Logging Endpoints (Authenticated - User-Specific)
+
+### 9. Create Log
+**Endpoint:** POST /api/logs
+**Headers:** Authorization: Bearer {accessToken}
+**Request Body:**
+```typescript
+{
+  type: string; // required - e.g., "error", "info", "warning"
+  timestamp: string; // required - ISO date string
+  url?: string; // optional
+  filename?: string; // optional
+  extra?: any; // optional - any additional data
+}
+```
+**Success Response (201):**
+```json
+{
+  "message": "Log saved"
+}
+```
+**Note:** userEmail is automatically attached from JWT token
+
+### 10. Get User Logs
+**Endpoint:** GET /api/logs
+**Headers:** Authorization: Bearer {accessToken}
+**Query Parameters (Optional):**
+- page: number (default: 1)
+- limit: number (default: 100, max: 100)
+- type: string (filter by log type)
+
+**Success Response (200):**
+```json
+{
+  "logs": [
+    {
+      "_id": "log-id",
+      "userEmail": "user@example.com",
+      "type": "error",
+      "timestamp": "2025-01-19T10:30:00.000Z",
+      "url": "/api/user/profile",
+      "filename": "userController.js",
+      "extra": { "userId": "12345", "error": "Database connection failed" },
+      "createdAt": "2025-01-19T10:30:00.000Z",
+      "updatedAt": "2025-01-19T10:30:00.000Z"
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 5,
+    "totalCount": 450,
+    "hasMore": true
+  }
+}
+```
+**Note:** Returns only logs for the authenticated user
+
+### 11. Delete User Logs
+**Endpoint:** DELETE /api/logs
+**Headers:** Authorization: Bearer {accessToken}
+**Success Response (200):**
+```json
+{
+  "message": "Your logs deleted successfully",
+  "deletedCount": 25
+}
+```
+**Note:** Deletes only the authenticated user's logs
+
+## Error Response Format
+All endpoints return errors in this format (400/401/404/500):
+```json
+{
+  "message": "Error description",
+  "errors": [
+    {
+      "path": "fieldName",
+      "message": "Specific field error"
+    }
+  ]
+}
+```
+
+## Validation Rules Summary
+- fullName: string, 3-100 characters
+- email: valid email format
+- password: minimum 4 characters
+- countryCode: string (phone country code)
+- phoneNumber: string
+- tnc: boolean (must be true for registration)
+- otp: string (6-digit numeric code)
+
+## Requirements for Frontend:
+
+1. **Create TypeScript interfaces** for all request/response types
+2. **Implement form validation** matching the backend Zod schemas exactly
+3. **Create API service functions** with proper error handling using axios or fetch
+4. **Set up HTTP client** with:
+   - Base URL configuration for dev/prod
+   - credentials: 'include' for cookies
+   - Automatic token attachment for protected routes
+5. **Implement complete authentication flow:**
+   - Registration form → OTP verification → Login
+   - Login → Store access token → Redirect to dashboard
+   - Password reset flow with email → OTP → new password
+   - Automatic token refresh when access token expires
+6. **Create responsive form components** with:
+   - Real-time validation feedback
+   - Loading states during API calls
+   - Error message display
+   - Success notifications
+7. **Implement authentication context/state management:**
+   - User authentication state
+   - Token storage (localStorage/sessionStorage)
+   - Protected route wrapper component
+   - Automatic logout on token expiry
+8. **Add proper error handling:**
+   - Network errors
+   - Validation errors (display field-specific messages)
+   - Authentication errors
+   - Server errors
+9. **Create reusable components:**
+   - Input fields with validation
+   - Loading spinners
+   - Error/success alerts
+   - OTP input component
+10. **Security considerations:**
+    - Secure token storage
+    - Auto-logout on inactivity
+    - CSRF protection via cookies
+    - Input sanitization
+
+## Technical Implementation Notes:
+- Backend uses JWT with 5-minute access tokens and 30-day refresh tokens
+- Refresh token is stored as httpOnly cookie (secure)
+- All API calls should include credentials for cookie handling
+- CORS is configured to allow credentials from frontend origins
+- API returns detailed validation errors for form field highlighting
+
+Please create a modern React application with TypeScript that implements this complete authentication system with clean, maintainable code using React hooks, context API, and modern best practices.

@@ -15,8 +15,11 @@ export const validateRequest = (schema: ZodSchema<any>): RequestHandler => {
           message: err.message,
         }));
 
-        // Log the validation errors
-        logger.warn("Payload Validation Failed");
+        // Log the validation errors with details
+        logger.warn("Payload Validation Failed", {
+          errors: formattedErrors,
+          requestBody: req.body,
+        });
 
         res.status(400).json({
           message: "Validation failed",
