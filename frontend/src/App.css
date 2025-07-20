@@ -29,11 +29,17 @@
   0% { opacity: 0.2 }
   100% { opacity: 0.7 }
 }
-
 .hide-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
+}
+body {
+  margin: 0;
+  padding: 0;
+}
+html, body {
+  overflow-x: hidden;
 }
