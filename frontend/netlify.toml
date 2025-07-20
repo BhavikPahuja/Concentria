@@ -1,0 +1,26 @@
+[build]
+  # Build command
+  command = "npm run build"
+  
+  # Directory with the static files
+  publish = "dist"
+
+# Environment variables for production
+[build.environment]
+  VITE_API_URL = "https://concentria-fh4s.onrender.com"
+  VITE_APP_ENV = "production"
+
+# Redirect rules for SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
