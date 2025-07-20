@@ -1,6 +1,6 @@
 import React from "react";
 import StatsCards from "../Stats/StatsCards";
-import LogsTable from "../Logs/LogsTable";
+import LogsTable from "../Logs/LogsTable.jsx";
 
 const MainContent = ({ activeTab, logs = [], logsLoading = false }) => {
   const renderTabContent = () => {
