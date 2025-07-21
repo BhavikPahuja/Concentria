@@ -9,9 +9,9 @@ class ApiService {
   }
 
   /**
-   * Make HTTP request with proper error handling
+   * Make HTTP request with automatic token refresh on 401
    */
-  async makeRequest(endpoint, options = {}) {
+  async makeRequest(endpoint, options = {}, isRetry = false) {
     const url = `${this.baseURL}${endpoint}`;
 
     const defaultHeaders = {
@@ -44,6 +44,42 @@ class ApiService {
 
       if (!response.ok) {
         console.error(`❌ API Error: ${response.status}`, data);
+
+        // Handle 401 Unauthorized - attempt token refresh
+        if (
+          response.status === 401 &&
+          !isRetry &&
+          endpoint !== config.endpoints.auth.refreshToken
+        ) {
+          console.log("🔄 Token expired, attempting refresh...");
+
+          try {
+            await this.refreshToken();
+            console.log("✅ Token refreshed successfully, retrying request...");
+
+            // Dispatch success event for UI notification
+            window.dispatchEvent(new CustomEvent("auth:token-refreshed"));
+
+            // Retry the original request with the new token
+            return await this.makeRequest(endpoint, options, true);
+          } catch (refreshError) {
+            console.error("❌ Token refresh failed:", refreshError);
+
+            // Clear tokens and redirect to login
+            this.logout();
+
+            // Dispatch a custom event to notify components about auth failure
+            window.dispatchEvent(new CustomEvent("auth:token-expired"));
+
+            throw {
+              status: 401,
+              message: "Session expired. Please login again.",
+              errors: ["Authentication failed"],
+              tokenExpired: true,
+            };
+          }
+        }
+
         throw {
           status: response.status,
           message: data.message || "Request failed",

@@ -1,5 +1,5 @@
 import React from "react";
-import { useAuth } from "../../../contexts/AuthContext";
+import { useAuth } from "../../../contexts/AuthContext.jsx";
 import { AiOutlineUser, AiOutlineLogout } from "react-icons/ai";
 
 const UserProfile = ({ onLogout }) => {

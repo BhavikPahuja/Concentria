@@ -37,6 +37,28 @@ export const AuthProvider = ({ children }) => {
     };
 
     initializeAuth();
+
+    // Listen for token expiration events from API service
+    const handleTokenExpired = () => {
+      console.log(
+        "🔄 AuthContext: Token expired event received, logging out user"
+      );
+      setUser(null);
+      setIsAuthenticated(false);
+    };
+
+    // Listen for successful token refresh events
+    const handleTokenRefreshed = () => {
+      console.log("🔄 AuthContext: Token refreshed successfully");
+    };
+
+    window.addEventListener("auth:token-expired", handleTokenExpired);
+    window.addEventListener("auth:token-refreshed", handleTokenRefreshed);
+
+    return () => {
+      window.removeEventListener("auth:token-expired", handleTokenExpired);
+      window.removeEventListener("auth:token-refreshed", handleTokenRefreshed);
+    };
   }, []);
 
   const login = async (credentials) => {

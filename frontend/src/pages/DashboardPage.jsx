@@ -8,6 +8,7 @@ import Sidebar from "../components/Dashboard/Sidebar/Sidebar";
 import DashboardHeader from "../components/Dashboard/Header/DashboardHeader";
 import MainContent from "../components/Dashboard/MainContent/MainContent";
 import UserProfile from "../components/Dashboard/UserProfile/UserProfile";
+import Notification from "../components/Common/Notification";
 
 function DashboardPage() {
   const { user, logout } = useAuth();
@@ -16,9 +17,34 @@ function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [demoMode, setDemoMode] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
+
+    // Listen for token refresh events
+    const handleTokenRefreshed = () => {
+      setNotification({
+        message: "Session renewed automatically",
+        type: "success",
+      });
+    };
+
+    const handleTokenExpired = () => {
+      setNotification({
+        message: "Session expired. Please login again.",
+        type: "error",
+      });
+    };
+
+    window.addEventListener("auth:token-refreshed", handleTokenRefreshed);
+    window.addEventListener("auth:token-expired", handleTokenExpired);
+
+    return () => {
+      window.removeEventListener("auth:token-refreshed", handleTokenRefreshed);
+      window.removeEventListener("auth:token-expired", handleTokenExpired);
+    };
   }, []);
 
   const fetchDashboardData = async () => {
@@ -127,6 +153,32 @@ function DashboardPage() {
     setTimeout(() => {
       window.location.href = "/auth";
     }, 1500);
+  };
+
+  // Test token refresh functionality
+  const testTokenRefresh = async () => {
+    try {
+      setNotification({
+        message: "Testing token refresh...",
+        type: "info"
+      });
+
+      // First, try to make a request that might trigger refresh
+      const logs = await logsApiService.getAllLogs();
+      
+      setNotification({
+        message: "Token refresh test completed successfully",
+        type: "success"
+      });
+      
+      console.log("🔄 Token refresh test successful. Logs received:", logs?.length || 0);
+    } catch (error) {
+      console.error("🔄 Token refresh test failed:", error);
+      setNotification({
+        message: `Token refresh test failed: ${error.message || 'Unknown error'}`,
+        type: "error"
+      });
+    }
   };
 
   // Test backend connectivity
@@ -278,41 +330,62 @@ function DashboardPage() {
       </div>
 
       <div className="relative z-10 flex min-h-screen">
+        {/* Mobile Sidebar Overlay */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* Sidebar */}
-        <Sidebar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onLogout={handleLogout}
-          user={user}
-        />
+        <div
+          className={`
+          fixed lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-50
+          ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          }
+        `}
+        >
+          <Sidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            onLogout={handleLogout}
+            user={user}
+            onClose={() => setSidebarOpen(false)}
+          />
+        </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
           <DashboardHeader
             activeTab={activeTab}
             onRefresh={fetchDashboardData}
             onDeleteAllLogs={handleDeleteAllLogs}
             showDeleteButton={activeTab === "logs" && logs.length > 0}
+            onMenuClick={() => setSidebarOpen(true)}
           />
 
           {/* Error Message */}
           {error && (
-            <div className="mx-6 mb-6 bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <FiAlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+            <div className="mx-4 lg:mx-6 mb-4 lg:mb-6 bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-xl p-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-3 lg:space-y-0">
+                <div className="flex items-start lg:items-center">
+                  <FiAlertTriangle className="h-5 w-5 text-red-500 mr-2 mt-0.5 lg:mt-0 flex-shrink-0" />
                   <div>
-                    <p className="text-red-700 font-medium">{error}</p>
+                    <p className="text-red-700 font-medium text-sm lg:text-base">
+                      {error}
+                    </p>
                     {error.includes("Authentication") && (
-                      <p className="text-red-600 text-sm mt-1">
+                      <p className="text-red-600 text-xs lg:text-sm mt-1">
                         This might be due to recent database changes. Try
                         logging out and back in.
                       </p>
                     )}
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {error.includes("Backend authentication") && (
                     <>
                       <button
@@ -321,31 +394,31 @@ function DashboardPage() {
                           setError("");
                           fetchDashboardData();
                         }}
-                        className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
+                        className="px-2 lg:px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-xs lg:text-sm"
                       >
-                        Enable Demo Mode
+                        Demo Mode
                       </button>
                       <button
                         onClick={debugAuthState}
-                        className="px-3 py-1 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm"
+                        className="px-2 lg:px-3 py-1 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-xs lg:text-sm"
                       >
-                        Debug Auth
+                        Debug
                       </button>
                       <button
                         onClick={testLogsApiCall}
-                        className="px-3 py-1 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors text-sm"
+                        className="px-2 lg:px-3 py-1 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors text-xs lg:text-sm"
                       >
-                        Test API Call
+                        Test API
                       </button>
                       <button
                         onClick={testBackendConnection}
-                        className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm"
+                        className="px-2 lg:px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-xs lg:text-sm"
                       >
                         Test Backend
                       </button>
                       <button
                         onClick={handleClearAuth}
-                        className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm"
+                        className="px-2 lg:px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-xs lg:text-sm"
                       >
                         Clear Auth
                       </button>
@@ -353,7 +426,7 @@ function DashboardPage() {
                   )}
                   <button
                     onClick={() => setError("")}
-                    className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                    className="px-2 lg:px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-xs lg:text-sm"
                   >
                     Dismiss
                   </button>
@@ -370,6 +443,15 @@ function DashboardPage() {
           />
         </div>
       </div>
+
+      {/* Notification */}
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
     </div>
   );
 }

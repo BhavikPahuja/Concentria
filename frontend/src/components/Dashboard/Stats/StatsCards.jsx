@@ -17,15 +17,21 @@ const StatsCard = ({
   };
 
   return (
-    <div className="h-auto bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105">
-      <div className="flex items-center space-x-4">
-        <div className={`p-3 rounded-xl ${colorClasses[color]}`}>
-          <Icon className="h-6 w-6" />
+    <div className="h-auto bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 p-4 md:p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+      <div className="flex items-center space-x-3 md:space-x-4">
+        <div className={`p-2 md:p-3 rounded-xl ${colorClasses[color]}`}>
+          <Icon className="h-5 w-5 md:h-6 md:w-6" />
         </div>
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          <p className="text-sm text-gray-600 mt-1">{description}</p>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-base md:text-lg font-semibold text-gray-800 truncate">
+            {title}
+          </h3>
+          <p className="text-xl md:text-2xl font-bold text-gray-900 mt-1">
+            {value}
+          </p>
+          <p className="text-xs md:text-sm text-gray-600 mt-1 truncate">
+            {description}
+          </p>
         </div>
       </div>
     </div>
@@ -63,7 +69,7 @@ const StatsCards = ({ logs = [] }) => {
   }, [logs]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 mb-6">
       <StatsCard
         icon={FiActivity}
         title="Total Activities"
