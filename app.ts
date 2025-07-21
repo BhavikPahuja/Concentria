@@ -19,6 +19,11 @@ app.use(
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
 
+      // Allow ALL Chrome extensions
+      if (origin && origin.startsWith("chrome-extension://")) {
+        return callback(null, true);
+      }
+
       // In development, allow localhost on any port
       if (
         process.env.NODE_ENV === "development" &&
