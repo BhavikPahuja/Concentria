@@ -64,18 +64,6 @@ connectDatabase();
 app.use("/auth", authRoutes);
 app.use("/api", logRoutes);
 
-// Debug route to catch unmatched requests
-app.use("*", (req, res) => {
-  console.log("🔍 Unmatched route:", req.method, req.originalUrl);
-  console.log("🔍 Origin:", req.headers.origin);
-  res.status(404).json({
-    error: "Route not found",
-    method: req.method,
-    path: req.originalUrl,
-    message: "Make sure you're using the correct API endpoint",
-  });
-});
-
 app.use(errorHandler); // Error handling middleware
 
 export default app;
