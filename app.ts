@@ -16,17 +16,11 @@ const app = express();
 app.use(
   cors({
     origin: (origin, callback) => {
-      console.log("🔍 CORS Request Origin:", origin);
-
       // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) {
-        console.log("✅ CORS: Allowing request with no origin");
-        return callback(null, true);
-      }
+      if (!origin) return callback(null, true);
 
       // Allow ALL Chrome extensions
       if (origin && origin.startsWith("chrome-extension://")) {
-        console.log("✅ CORS: Allowing Chrome extension:", origin);
         return callback(null, true);
       }
 
@@ -35,7 +29,6 @@ app.use(
         process.env.NODE_ENV === "development" &&
         origin.includes("localhost")
       ) {
-        console.log("✅ CORS: Allowing localhost in development:", origin);
         return callback(null, true);
       }
 
@@ -43,11 +36,8 @@ app.use(
       if ((allowedOrigins || "").split(",")?.indexOf(origin) === -1) {
         const msg =
           "The CORS policy for this site does not allow access from the specified Origin.";
-        console.log("❌ CORS: Blocking origin:", origin);
         return callback(new Error(msg), false);
       }
-
-      console.log("✅ CORS: Allowing origin from allowed list:", origin);
       return callback(null, true);
     },
     credentials: true, // Allow cookies to be sent with requests
