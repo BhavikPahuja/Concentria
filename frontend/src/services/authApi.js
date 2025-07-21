@@ -244,6 +244,32 @@ class ApiService {
   isAuthenticated() {
     return !!this.getStoredToken();
   }
+
+  // Test utility to simulate expired token
+  simulateExpiredToken() {
+    const currentToken = localStorage.getItem("accessToken");
+    if (currentToken) {
+      // Store the original token temporarily
+      localStorage.setItem("originalToken", currentToken);
+      // Set a dummy expired token
+      localStorage.setItem("accessToken", "expired_token_for_testing");
+      console.log("🧪 Token set to expired for testing purposes");
+      return true;
+    }
+    return false;
+  }
+
+  // Test utility to restore original token
+  restoreOriginalToken() {
+    const originalToken = localStorage.getItem("originalToken");
+    if (originalToken) {
+      localStorage.setItem("accessToken", originalToken);
+      localStorage.removeItem("originalToken");
+      console.log("🧪 Original token restored");
+      return true;
+    }
+    return false;
+  }
 }
 
 // Create and export singleton instance

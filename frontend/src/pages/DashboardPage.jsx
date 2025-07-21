@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { logsApiService } from "../services/logsApi.js";
+import { apiService } from "../services/authApi.js";
 import { FiActivity, FiAlertTriangle } from "react-icons/fi";
 
 // Import our new modular components
@@ -159,25 +160,54 @@ function DashboardPage() {
   const testTokenRefresh = async () => {
     try {
       setNotification({
-        message: "Testing token refresh...",
-        type: "info"
+        message: "Testing token refresh mechanism...",
+        type: "info",
       });
 
-      // First, try to make a request that might trigger refresh
+      console.log("🧪 Starting token refresh test...");
+
+      // First, simulate an expired token
+      const tokenSimulated = apiService.simulateExpiredToken();
+      if (!tokenSimulated) {
+        throw new Error("No token available to simulate expiration");
+      }
+
+      console.log("🧪 Token simulated as expired, making API call...");
+
+      // Now make an API call that should trigger the refresh mechanism
       const logs = await logsApiService.getAllLogs();
-      
+
       setNotification({
-        message: "Token refresh test completed successfully",
-        type: "success"
+        message: "Token refresh test completed! Check console for details.",
+        type: "success",
       });
-      
-      console.log("🔄 Token refresh test successful. Logs received:", logs?.length || 0);
+
+      console.log(
+        "🧪 Token refresh test successful. Logs received:",
+        logs?.length || 0
+      );
+
+      // Refresh the dashboard data to reflect any changes
+      await fetchDashboardData();
     } catch (error) {
-      console.error("🔄 Token refresh test failed:", error);
+      console.error("🧪 Token refresh test failed:", error);
+
+      // Try to restore the original token in case of failure
+      apiService.restoreOriginalToken();
+
       setNotification({
-        message: `Token refresh test failed: ${error.message || 'Unknown error'}`,
-        type: "error"
+        message: `Token refresh test failed: ${
+          error.message || "Unknown error"
+        }`,
+        type: "error",
       });
+
+      // If the test failed due to actual auth issues, the user might need to re-login
+      if (error.tokenExpired) {
+        setTimeout(() => {
+          window.location.href = "/auth";
+        }, 3000);
+      }
     }
   };
 
@@ -415,6 +445,12 @@ function DashboardPage() {
                         className="px-2 lg:px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-xs lg:text-sm"
                       >
                         Test Backend
+                      </button>
+                      <button
+                        onClick={testTokenRefresh}
+                        className="px-2 lg:px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-xs lg:text-sm"
+                      >
+                        Test Refresh
                       </button>
                       <button
                         onClick={handleClearAuth}

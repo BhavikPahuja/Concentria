@@ -6,6 +6,109 @@ import { config } from "../config/api.js";
  */
 class LogsApiService {
   /**
+   * Helper function to create properly formatted log entries
+   */
+  createLogEntry(type, action, details = "", additionalData = {}) {
+    return {
+      type: type,
+      action: action,
+      details: details,
+      timestamp: new Date().toISOString(),
+      ip: null, // Will be set by backend
+      ...additionalData,
+    };
+  }
+
+  /**
+   * Predefined log templates for common activities
+   */
+  getLogTemplates() {
+    return {
+      auth: {
+        login: (email) =>
+          this.createLogEntry(
+            "auth",
+            "User Login",
+            `User ${email} logged in successfully`
+          ),
+        logout: (email) =>
+          this.createLogEntry(
+            "auth",
+            "User Logout",
+            `User ${email} logged out`
+          ),
+        failed_login: (email) =>
+          this.createLogEntry(
+            "auth",
+            "Failed Login",
+            `Failed login attempt for ${email}`
+          ),
+        register: (email) =>
+          this.createLogEntry(
+            "auth",
+            "User Registration",
+            `New user ${email} registered`
+          ),
+        token_refresh: () =>
+          this.createLogEntry(
+            "auth",
+            "Token Refresh",
+            "Access token refreshed automatically"
+          ),
+      },
+      privacy: {
+        data_access: (type) =>
+          this.createLogEntry(
+            "privacy",
+            "Data Access",
+            `${type} data accessed`
+          ),
+        consent_given: (type) =>
+          this.createLogEntry(
+            "privacy",
+            "Consent Given",
+            `Consent given for ${type}`
+          ),
+        consent_revoked: (type) =>
+          this.createLogEntry(
+            "privacy",
+            "Consent Revoked",
+            `Consent revoked for ${type}`
+          ),
+        privacy_check: () =>
+          this.createLogEntry(
+            "privacy",
+            "Privacy Check",
+            "Privacy settings reviewed"
+          ),
+      },
+      security: {
+        security_scan: () =>
+          this.createLogEntry(
+            "security",
+            "Security Scan",
+            "System security validation completed"
+          ),
+        suspicious_activity: (details) =>
+          this.createLogEntry("security", "Suspicious Activity", details),
+        password_change: () =>
+          this.createLogEntry(
+            "security",
+            "Password Change",
+            "User password changed"
+          ),
+      },
+      system: {
+        api_call: (endpoint) =>
+          this.createLogEntry("api", "API Request", `API call to ${endpoint}`),
+        error: (error) => this.createLogEntry("error", "System Error", error),
+        warning: (warning) =>
+          this.createLogEntry("warning", "System Warning", warning),
+      },
+    };
+  }
+
+  /**
    * Create a new log entry
    */
   async createLog(logData) {
