@@ -54,28 +54,50 @@ function DashboardPage() {
       setError("");
 
       if (demoMode) {
-        // Demo data for testing
+        // Demo data for testing - using the new schema-compliant log types
         const demoLogs = [
           {
             id: 1,
+            userEmail: "user@example.com",
+            type: "clipboard",
             timestamp: new Date().toISOString(),
-            action: "User Login",
-            details: "Successful login from dashboard",
-            type: "auth",
+            url: "https://example.com/page",
           },
           {
             id: 2,
+            userEmail: "user@example.com",
+            type: "geolocation",
             timestamp: new Date(Date.now() - 86400000).toISOString(), // Yesterday
-            action: "Data Privacy Check",
-            details: "Privacy settings reviewed",
-            type: "privacy",
+            url: "https://maps.google.com",
           },
           {
             id: 3,
-            timestamp: new Date().toISOString(),
-            action: "Security Scan",
-            details: "System security validation",
-            type: "security",
+            userEmail: "user@example.com",
+            type: "camera",
+            timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+            url: "https://meet.google.com/video-call",
+          },
+          {
+            id: 4,
+            userEmail: "user@example.com",
+            type: "microphone",
+            timestamp: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
+            url: "https://discord.com/channels/voice",
+          },
+          {
+            id: 5,
+            userEmail: "user@example.com",
+            type: "download",
+            timestamp: new Date(Date.now() - 10800000).toISOString(), // 3 hours ago
+            url: "https://example.com/download",
+            filename: "document.pdf",
+          },
+          {
+            id: 6,
+            userEmail: "user@example.com",
+            type: "permissions",
+            timestamp: new Date(Date.now() - 14400000).toISOString(), // 4 hours ago
+            url: "https://secure-site.com",
           },
         ];
 

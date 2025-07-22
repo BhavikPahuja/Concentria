@@ -20,6 +20,23 @@ class LogsApiService {
   }
 
   /**
+   * Helper function to create schema-compliant log entries
+   * Schema: { userEmail, type, timestamp, url?, filename? }
+   */
+  createSchemaCompliantLogEntry(userEmail, type, url = null, filename = null) {
+    const entry = {
+      userEmail: userEmail,
+      type: type,
+      timestamp: new Date().toISOString(),
+    };
+
+    if (url) entry.url = url;
+    if (filename) entry.filename = filename;
+
+    return entry;
+  }
+
+  /**
    * Predefined log templates for common activities
    */
   getLogTemplates() {
@@ -105,6 +122,40 @@ class LogsApiService {
         warning: (warning) =>
           this.createLogEntry("warning", "System Warning", warning),
       },
+    };
+  }
+
+  /**
+   * Schema-compliant log templates for the 10 specific privacy log types
+   * Schema: { userEmail, type, timestamp, url?, filename? }
+   */
+  getPrivacyLogTemplates() {
+    return {
+      geolocation: (userEmail, url) =>
+        this.createSchemaCompliantLogEntry(userEmail, "geolocation", url),
+      clipboard: (userEmail, url) =>
+        this.createSchemaCompliantLogEntry(userEmail, "clipboard", url),
+      deviceOrientation: (userEmail, url) =>
+        this.createSchemaCompliantLogEntry(userEmail, "deviceorientation", url),
+      permissions: (userEmail, url) =>
+        this.createSchemaCompliantLogEntry(userEmail, "permissions", url),
+      cut: (userEmail, url) =>
+        this.createSchemaCompliantLogEntry(userEmail, "cut", url),
+      copy: (userEmail, url) =>
+        this.createSchemaCompliantLogEntry(userEmail, "copy", url),
+      paste: (userEmail, url) =>
+        this.createSchemaCompliantLogEntry(userEmail, "paste", url),
+      microphone: (userEmail, url) =>
+        this.createSchemaCompliantLogEntry(userEmail, "microphone", url),
+      camera: (userEmail, url) =>
+        this.createSchemaCompliantLogEntry(userEmail, "camera", url),
+      download: (userEmail, url, filename) =>
+        this.createSchemaCompliantLogEntry(
+          userEmail,
+          "download",
+          url,
+          filename
+        ),
     };
   }
 

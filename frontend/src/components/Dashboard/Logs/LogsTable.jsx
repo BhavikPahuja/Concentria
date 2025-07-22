@@ -8,8 +8,19 @@ import {
   AiOutlineWarning,
   AiOutlineInfoCircle,
   AiOutlineApi,
+  AiOutlineCompass,
+  AiOutlineCopy,
+  AiOutlineCamera,
+  AiOutlineAudio,
 } from "react-icons/ai";
-import { FiActivity, FiShield, FiLock } from "react-icons/fi";
+import {
+  FiActivity,
+  FiShield,
+  FiLock,
+  FiClipboard,
+  FiRotateCcw,
+  FiDownload,
+} from "react-icons/fi";
 
 const LogItem = ({ log }) => {
   const formatTimestamp = (timestamp) => {
@@ -17,9 +28,30 @@ const LogItem = ({ log }) => {
   };
 
   const getLogIcon = (action, type) => {
-    // Check by type first (more reliable)
+    // Check by type first (more reliable) - using the 10 specific log types
     if (type) {
       switch (type.toLowerCase()) {
+        case "geolocation":
+          return <AiOutlineCompass className="h-4 w-4" />;
+        case "clipboard":
+          return <FiClipboard className="h-4 w-4" />;
+        case "deviceorientation":
+          return <FiRotateCcw className="h-4 w-4" />;
+        case "permissions":
+          return <AiOutlineSafety className="h-4 w-4" />;
+        case "cut":
+          return <AiOutlineCopy className="h-4 w-4" />;
+        case "copy":
+          return <AiOutlineCopy className="h-4 w-4" />;
+        case "paste":
+          return <AiOutlineCopy className="h-4 w-4" />;
+        case "microphone":
+          return <AiOutlineAudio className="h-4 w-4" />;
+        case "camera":
+          return <AiOutlineCamera className="h-4 w-4" />;
+        case "download":
+          return <FiDownload className="h-4 w-4" />;
+        // Legacy auth types (for backward compatibility)
         case "auth":
         case "authentication":
         case "login":
@@ -78,9 +110,30 @@ const LogItem = ({ log }) => {
       return log.action;
     }
 
-    // Generate name based on log type
+    // Generate name based on the 10 specific log types
     if (log.type) {
       switch (log.type.toLowerCase()) {
+        case "geolocation":
+          return "Location API Access";
+        case "clipboard":
+          return "Clipboard API Usage";
+        case "deviceorientation":
+          return "Device Orientation Listeners";
+        case "permissions":
+          return "Permission API Queries";
+        case "cut":
+          return "Cut Operations";
+        case "copy":
+          return "Copy Operations";
+        case "paste":
+          return "Paste Operations";
+        case "microphone":
+          return "Microphone Access";
+        case "camera":
+          return "Camera Access";
+        case "download":
+          return "File Download";
+        // Legacy auth types (for backward compatibility)
         case "auth":
         case "authentication":
           return "User Authentication";
@@ -131,6 +184,25 @@ const LogItem = ({ log }) => {
   const getIconColor = (action, type) => {
     if (type) {
       switch (type.toLowerCase()) {
+        case "geolocation":
+          return "bg-orange-500/20 text-orange-600";
+        case "clipboard":
+          return "bg-purple-500/20 text-purple-600";
+        case "deviceorientation":
+          return "bg-indigo-500/20 text-indigo-600";
+        case "permissions":
+          return "bg-yellow-500/20 text-yellow-600";
+        case "cut":
+        case "copy":
+        case "paste":
+          return "bg-cyan-500/20 text-cyan-600";
+        case "microphone":
+          return "bg-red-500/20 text-red-600";
+        case "camera":
+          return "bg-pink-500/20 text-pink-600";
+        case "download":
+          return "bg-green-500/20 text-green-600";
+        // Legacy auth types (for backward compatibility)
         case "auth":
         case "authentication":
         case "login":
@@ -196,6 +268,16 @@ const LogItem = ({ log }) => {
         {log.details && (
           <p className="text-xs md:text-sm text-gray-600 mt-1 line-clamp-2">
             {log.details}
+          </p>
+        )}
+        {log.url && (
+          <p className="text-xs text-gray-500 mt-1 truncate">
+            URL: <span className="text-blue-600">{log.url}</span>
+          </p>
+        )}
+        {log.filename && (
+          <p className="text-xs text-gray-500 mt-1 truncate">
+            File: <span className="text-green-600">{log.filename}</span>
           </p>
         )}
         {log.ip && (
