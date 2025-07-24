@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { apiService } from "../services/authApi.js";
-import { logsApiService } from "../services/logsApi.js";
 
 const AuthContext = createContext();
 
@@ -86,16 +85,6 @@ export const AuthProvider = ({ children }) => {
           setUser(minimalUser);
           setIsAuthenticated(true);
         }
-
-        // Log successful login
-        try {
-          const templates = logsApiService.getLogTemplates();
-          await logsApiService.createLog(
-            templates.auth.login(credentials.email)
-          );
-        } catch (logError) {
-          console.warn("Failed to log login event:", logError);
-        }
       } else {
         console.warn("AuthContext: No access token in response");
       }
@@ -103,17 +92,6 @@ export const AuthProvider = ({ children }) => {
       return response;
     } catch (error) {
       console.error("Login error:", error);
-
-      // Log failed login attempt
-      try {
-        const templates = logsApiService.getLogTemplates();
-        await logsApiService.createLog(
-          templates.auth.failed_login(credentials.email)
-        );
-      } catch (logError) {
-        console.warn("Failed to log failed login event:", logError);
-      }
-
       throw error;
     }
   };
@@ -181,20 +159,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    // Log logout before clearing user data
-    if (user?.email) {
-      try {
-        const templates = logsApiService.getLogTemplates();
-        logsApiService
-          .createLog(templates.auth.logout(user.email))
-          .catch((error) => {
-            console.warn("Failed to log logout event:", error);
-          });
-      } catch (logError) {
-        console.warn("Failed to log logout event:", logError);
-      }
-    }
-
     apiService.logout();
     setUser(null);
     setIsAuthenticated(false);
@@ -203,15 +167,6 @@ export const AuthProvider = ({ children }) => {
   const refreshToken = async () => {
     try {
       const response = await apiService.refreshToken();
-
-      // Log successful token refresh
-      try {
-        const templates = logsApiService.getLogTemplates();
-        await logsApiService.createLog(templates.auth.token_refresh());
-      } catch (logError) {
-        console.warn("Failed to log token refresh event:", logError);
-      }
-
       return response;
     } catch (error) {
       console.error("Token refresh error:", error);

@@ -8,9 +8,9 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://concentria-fh4s.onrender.com",
+        target: "http://localhost:5000",
         changeOrigin: true,
-        secure: true,
+        secure: false,
         headers: {
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -18,9 +18,9 @@ export default defineConfig({
         },
       },
       "/auth": {
-        target: "https://concentria-fh4s.onrender.com",
+        target: "http://localhost:5000",
         changeOrigin: true,
-        secure: true,
+        secure: false,
         headers: {
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
