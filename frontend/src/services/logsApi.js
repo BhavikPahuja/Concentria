@@ -1,6 +1,68 @@
 import { apiService } from "./authApi.js";
 import { config } from "../config/api.js";
 
+// Helper functions for log normalization
+// Extract domain from URL
+const extractDomain = (url) => {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname;
+  } catch (error) {
+    return "unknown site";
+  }
+};
+
+// Generate meaningful action names for the 10 specific privacy log types
+const generateActionFromType = (type, url) => {
+  const typeActions = {
+    geolocation: "Location Access Detected",
+    clipboard: "Clipboard Access Detected",
+    deviceorientation: "Device Orientation Access",
+    permissions: "Permission Request Detected",
+    cut: "Cut Operation Detected",
+    copy: "Copy Operation Detected",
+    paste: "Paste Operation Detected",
+    microphone: "Microphone Access Detected",
+    camera: "Camera Access Detected",
+    download: "File Download Detected",
+  };
+
+  const baseAction = typeActions[type?.toLowerCase()];
+  if (baseAction && url) {
+    const domain = extractDomain(url);
+    return `${baseAction} on ${domain}`;
+  }
+
+  return baseAction || `${type} Activity` || "Privacy Activity";
+};
+
+// Normalize log entry to ensure consistent schema
+const normalizeLogEntry = (log) => {
+  console.log("🔧 Normalizing privacy log:", log);
+
+  const normalized = {
+    _id: log._id || log.id || Date.now().toString(),
+    userEmail: log.userEmail || "Unknown User",
+    type: log.type || "unknown",
+    timestamp: log.timestamp || log.createdAt || new Date().toISOString(),
+    url: log.url || null,
+    filename: log.filename || null,
+    createdAt: log.createdAt || log.timestamp || new Date().toISOString(),
+    updatedAt: log.updatedAt || log.timestamp || new Date().toISOString(),
+
+    // Generate meaningful action names from type
+    action: log.action || generateActionFromType(log.type, log.url),
+    details:
+      log.details ||
+      `${log.type} activity on ${
+        log.url ? extractDomain(log.url) : "unknown site"
+      }`,
+  };
+
+  console.log("✅ Normalized privacy log:", normalized);
+  return normalized;
+};
+
 /**
  * Logs API Service for handling activity logs
  */
@@ -179,7 +241,7 @@ class LogsApiService {
   }
 
   /**
-   * Get all logs
+   * Get all logs with normalization
    */
   async getAllLogs() {
     try {
@@ -198,17 +260,28 @@ class LogsApiService {
         }
       );
 
-      console.log("🔍 LogsAPI: Response received:", response);
+      console.log("🔍 LogsAPI: Raw response received:", response);
 
       // Handle new response structure with nested logs array
       if (response && response.logs && Array.isArray(response.logs)) {
+        console.log("🔍 LogsAPI: Found", response.logs.length, "privacy logs");
         console.log(
-          "🔍 LogsAPI: Extracted logs array:",
-          response.logs.length,
-          "items"
+          "🔍 LogsAPI: Log types:",
+          response.logs.map((log) => log.type)
         );
         console.log("🔍 LogsAPI: Pagination info:", response.pagination);
-        return response.logs;
+
+        // Normalize all logs to ensure consistent schema
+        const normalizedLogs = response.logs.map((log) =>
+          normalizeLogEntry(log)
+        );
+        console.log(
+          "✅ LogsAPI: Returning",
+          normalizedLogs.length,
+          "normalized privacy logs"
+        );
+
+        return normalizedLogs;
       }
 
       // Fallback for direct array response (backward compatibility)
@@ -216,9 +289,10 @@ class LogsApiService {
         console.log(
           "🔍 LogsAPI: Direct array response:",
           response.length,
-          "items"
+          "privacy logs"
         );
-        return response;
+        const normalizedLogs = response.map((log) => normalizeLogEntry(log));
+        return normalizedLogs;
       }
 
       console.warn("🔍 LogsAPI: Unexpected response structure:", response);
