@@ -1,25 +1,27 @@
-export function getCookies(domain) {
-  return new Promise(res => {
-    chrome.cookies.getAll({ domain }, res);
+export async function getCookies(domain) {
+  return new Promise((resolve) => {
+    chrome.cookies.getAll({ domain }, resolve);
   });
 }
 
-export function setCookie(details) {
-  return new Promise(res => {
-    chrome.cookies.set(details, res);
+export async function setCookie(details) {
+  return new Promise((resolve) => {
+    chrome.cookies.set(details, resolve);
   });
 }
 
-export function deleteCookie(url, name) {
-  return new Promise(res => {
-    chrome.cookies.remove({ url, name }, res);
+export async function deleteCookie(url, name) {
+  return new Promise((resolve) => {
+    chrome.cookies.remove({ url, name }, resolve);
   });
 }
 
 export async function deleteAllCookies(cookies) {
   for (const cookie of cookies) {
-    const protocol = cookie.secure ? 'https://' : 'http://';
-    const url = protocol + cookie.domain.replace(/^\./, '') + cookie.path;
+    const url =
+      (cookie.secure ? "https://" : "http://") +
+      cookie.domain.replace(/^\./, "") +
+      cookie.path;
     await deleteCookie(url, cookie.name);
   }
 }

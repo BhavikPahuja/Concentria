@@ -1,5 +1,4 @@
-// config.js
 export const config = {
-  // Replace with your real endpoint. E.g. "https://yourserver.com/api/logs"
-  API_URL: 'https://example.com/api/logs'
+  API_BASE_URL: "https://concentria-fh4s.onrender.com",
+  VERSION: "1.0.0",
 };
